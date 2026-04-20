@@ -408,7 +408,8 @@ export default function InvoiceGrid() {
 
   // ================= LOAD NEXT INVOICE =================
   useEffect(() => {
-    axios.get("http://localhost:5000/next-invoice")
+    // axios.get("http://localhost:5000/next-invoice")
+    axios.get("https://backend-br6r.vercel.app/next-invoice")
       .then(res => {
         setInvoice({
           invoiceNo: res.data.nextNo,
@@ -446,7 +447,8 @@ export default function InvoiceGrid() {
 
   // ================= SEARCH INVOICE =================
   const searchInvoice = async (no) => {
-    const res = await axios.get(`http://localhost:5000/invoice/${no}`);
+    // const res = await axios.get(`http://localhost:5000/invoice/${no}`);
+    const res = await axios.get(`https://backend-br6r.vercel.app/invoice/${no}`);
 
     if (!res.data) {
       alert("Invoice not found");
@@ -466,8 +468,8 @@ export default function InvoiceGrid() {
   // ================= RESET =================
   const resetForm = async () => {
 
-    const res = await axios.get("http://localhost:5000/next-invoice");
-
+    // const res = await axios.get("http://localhost:5000/next-invoice");
+const res = await axios.get("https://backend-br6r.vercel.app/next-invoice");
     setInvoice({
       invoiceNo: res.data.nextNo,
       date: new Date().toISOString().split("T")[0]

@@ -1,83 +1,65 @@
+
 import React, { useState } from "react";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-export default function Login({ onLogin }) {
-
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const login = async () => {
-    try {
-      const res = await axios.post("/api/auth/login", {
-        email,
-        password
-      });
+  const navigate = useNavigate();
 
-      console.log("SUCCESS:", res.data);
-
-      localStorage.setItem("token", res.data.token);
-
-      onLogin();
-
-    } catch (err) {
-      console.log("ERROR:", err.response?.data);
-      alert("Login failed");
+  const handleLogin = () => {
+    if (email === "admin" && password === "admin") {
+      navigate("/dashboard"); // ✅ go to InvoiceGrid
+    } else {
+      alert("Invalid credentials");
     }
   };
 
   return (
-    <div style={styles.wrapper}>
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0f1c]">
 
-      <div style={styles.card}>
-        <h2>ERP Login</h2>
+      <div className="flex flex-col items-center">
 
-        <input
-          placeholder="admin"
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
+        {/* LOGO */}
+        <img
+          src="/logo.png"
+          alt="logo"
+         className="w-64 mb-10"
         />
 
-        <input
-          type="password"
-          placeholder="1234"
-          onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
-        />
+        {/* CARD */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 w-[400px]">
 
-        <button onClick={login} style={styles.button}>
-          Login
-        </button>
+          <h1 className="text-white text-2xl text-center mb-6">
+            Login
+          </h1>
 
+          <input
+            type="text"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full mb-3 p-3 rounded bg-gray-900 text-white"
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full mb-4 p-3 rounded bg-gray-900 text-white"
+          />
+
+          <button
+            onClick={handleLogin}
+            className="w-full bg-blue-600 p-3 rounded text-white"
+          >
+            Login
+          </button>
+
+        </div>
       </div>
-
     </div>
   );
 }
-
-const styles = {
-  wrapper: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#0f172a"
-  },
-  card: {
-    width: 350,
-    padding: 30,
-    background: "white",
-    borderRadius: 12
-  },
-  input: {
-    width: "100%",
-    padding: 10,
-    marginBottom: 10
-  },
-  button: {
-    width: "100%",
-    padding: 10,
-    background: "#2563eb",
-    color: "white",
-    border: "none"
-  }
-};

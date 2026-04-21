@@ -496,49 +496,99 @@ const res = await axios.get("https://backend-v8ij.vercel.app/next-invoice");
   };
 
   // ================= SAVE =================
-  const saveInvoice = async () => {
+  // const saveInvoice = async () => {
 
-    const invoiceNo = invoice.invoiceNo;
+  //   const invoiceNo = invoice.invoiceNo;
 
-    if (!invoiceNo) {
-      alert("Invoice number missing!");
-      return;
-    }
+  //   if (!invoiceNo) {
+  //     alert("Invoice number missing!");
+  //     return;
+  //   }
 
-    const input = document.getElementById("invoiceBox");
+  //   const input = document.getElementById("invoiceBox");
 
-    const canvas = await html2canvas(input, { scale: 2 });
-    const img = canvas.toDataURL("image/png");
+  //   const canvas = await html2canvas(input, { scale: 2 });
+  //   const img = canvas.toDataURL("image/png");
 
-    const pdf = new jsPDF("p", "mm", "a4");
+  //   const pdf = new jsPDF("p", "mm", "a4");
 
-    const width = 210;
-    const height = (canvas.height * width) / canvas.width;
+  //   const width = 210;
+  //   const height = (canvas.height * width) / canvas.width;
 
-    pdf.addImage(img, "PNG", 0, 0, width, height);
+  //   pdf.addImage(img, "PNG", 0, 0, width, height);
 
-    const blob = pdf.output("blob");
+  //   const blob = pdf.output("blob");
 
-    const formData = new FormData();
+  //   const formData = new FormData();
 
-    formData.append("file", blob, `Invoice_${invoiceNo}.pdf`);
+  //   formData.append("file", blob, `Invoice_${invoiceNo}.pdf`);
 
-    formData.append("data", JSON.stringify({
-      invoiceNo,
-      date: invoice.date,
-      seller,
-      buyer,
-      rows
-    }));
+  //   formData.append("data", JSON.stringify({
+  //     invoiceNo,
+  //     date: invoice.date,
+  //     seller,
+  //     buyer,
+  //     rows
+  //   }));
 
-    // await axios.post("http://localhost:5000/save-invoice", formData);
-    await axios.post("https://backend-v8ij.vercel.app/save-invoice", formData);
+  //   // await axios.post("http://localhost:5000/save-invoice", formData);
+  //   await axios.post("https://backend-v8ij.vercel.app/save-invoice", formData);
   
+
+  //   await resetForm();
+
+  //   alert("Saved + Loaded New Invoice");
+  // };
+
+
+  const saveInvoice = async () => {
+  const invoiceNo = invoice.invoiceNo;
+
+  if (!invoiceNo) {
+    alert("Invoice number missing!");
+    return;
+  }
+
+  const input = document.getElementById("invoiceBox");
+
+  const canvas = await html2canvas(input, { scale: 2 });
+  const img = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const width = 210;
+  const height = (canvas.height * width) / canvas.width;
+
+  pdf.addImage(img, "PNG", 0, 0, width, height);
+
+  // 🔥 Convert PDF to Base64 string (NO FILE UPLOAD)
+  const pdfBase64 = pdf.output("datauristring");
+
+  const payload = {
+    invoiceNo,
+    date: invoice.date,
+    seller,
+    buyer,
+    rows,
+    pdf: pdfBase64
+  };
+
+  try {
+    await axios.post(
+      "https://backend-v8ij.vercel.app/save-invoice",
+      payload
+    );
 
     await resetForm();
 
-    alert("Saved + Loaded New Invoice");
-  };
+    alert("Saved + New Invoice Loaded 🚀");
+
+  } catch (err) {
+    console.log(err);
+    alert("Save failed");
+  }
+};
+
 
   // ================= TOTALS =================
   const totalExcl = rows.reduce((s, r) => s + Number(r.valueExcl || 0), 0);

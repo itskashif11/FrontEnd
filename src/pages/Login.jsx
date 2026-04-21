@@ -1,6 +1,8 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import logo from "../assets/Logo1.png";
+import { LogOutIcon } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -23,7 +25,7 @@ export default function LoginPage() {
 
         {/* LOGO */}
         <img
-          src="/logo.png"
+          src={logo}
           alt="logo"
          className="w-64 mb-10"
         />

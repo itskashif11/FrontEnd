@@ -455,7 +455,7 @@ export default function InvoiceGrid() {
       alert("Invoice not found");
       return;
     }
-
+   console.log("checking rows daata", res.data.rows)
     setInvoice({
       invoiceNo: res.data.invoiceNo,
       date: res.data.date

@@ -541,7 +541,7 @@ const res = await axios.get("https://backend-v8ij.vercel.app/next-invoice");
   // };
 
 
-  const saveInvoice = async () => {
+const saveInvoice = async () => {
   const invoiceNo = invoice.invoiceNo;
 
   if (!invoiceNo) {
@@ -561,16 +561,15 @@ const res = await axios.get("https://backend-v8ij.vercel.app/next-invoice");
 
   pdf.addImage(img, "PNG", 0, 0, width, height);
 
-  // 🔥 Convert PDF to Base64 string (NO FILE UPLOAD)
-  const pdfBase64 = pdf.output("datauristring");
+  // 💡 SAVE FILE LOCALLY (NO BACKEND FILE SENDING)
+  pdf.save(`Invoice_${invoiceNo}.pdf`);
 
   const payload = {
     invoiceNo,
     date: invoice.date,
     seller,
     buyer,
-    rows,
-    pdf: pdfBase64
+    rows
   };
 
   try {
@@ -580,8 +579,7 @@ const res = await axios.get("https://backend-v8ij.vercel.app/next-invoice");
     );
 
     await resetForm();
-
-    alert("Saved + New Invoice Loaded 🚀");
+    alert("Saved Successfully 🚀");
 
   } catch (err) {
     console.log(err);

@@ -987,7 +987,8 @@ search: {
   borderRadius: "6px",
   border: "none",
   outline: "none",
-  fontSize: "13px"
+  fontSize: "13px",
+  color: "black"
 },
   actions: { display: "flex", gap: 10 },
   box: { background: "white", padding: 20, marginTop: 10, borderRadius: 10 },

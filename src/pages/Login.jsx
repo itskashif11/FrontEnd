@@ -28,18 +28,15 @@ const handleLogin = async () => {
 
 const handleSignup = async () => {
   try {
-    const res = await axios.post(
-      "https://backend-v8ij.vercel.app/register",
-      {
-        username: email,
-        password: password,
-      }
-    );
+    const res = await axios.post(`${BASE_URL}/register`, {
+      username: email,
+      password: password,
+    });
 
     alert(res.data.message);
 
   } catch (err) {
-    console.log("FULL ERROR:", err.response?.data || err.message);
+    console.log(err.response?.data || err.message);
     alert(err.response?.data?.message || "Signup failed");
   }
 };

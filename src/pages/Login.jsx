@@ -13,7 +13,7 @@ export default function LoginPage() {
 
 const handleLogin = async () => {
   try {
-    const res = await axios.post(`${BASE_URL}/login`, {
+    const res = await axios.post(`https://backend-v8ij.vercel.app/register/login`, {
       username: email,
       password: password,
     });
@@ -28,14 +28,18 @@ const handleLogin = async () => {
 
 const handleSignup = async () => {
   try {
-    const res = await axios.post(`${BASE_URL}/register`, {
-      username: email,
-      password: password,
-    });
+    const res = await axios.post(
+      "https://backend-v8ij.vercel.app/register",
+      {
+        username: email,
+        password: password,
+      }
+    );
 
     alert(res.data.message);
 
   } catch (err) {
+    console.log("FULL ERROR:", err.response?.data || err.message);
     alert(err.response?.data?.message || "Signup failed");
   }
 };

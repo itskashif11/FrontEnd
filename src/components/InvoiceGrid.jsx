@@ -82,7 +82,36 @@ export default function InvoiceGrid() {
   }).format(Number(num) || 0);
 };
 
- const update = (i, field, value) => {
+//  const update = (i, field, value) => {
+//   const data = [...rows];
+//   const r = data[i];
+
+//   r[field] = value;
+
+//   const qty = Number(r.qty) || 0;
+//   const price = Number(r.unitPrice) || 0;
+
+//   // ✅ BASE VALUE
+//   const base = qty * price;
+
+//   // ✅ FIXED TAXES
+//   const salesTaxRate = 18;
+//   const furtherTaxRate = 4;
+
+//   const st = (base * salesTaxRate) / 100;
+//   const ft = (base * furtherTaxRate) / 100;
+
+//   // ✅ ASSIGN VALUES
+//   r.valueExcl = base;
+//   r.salesTaxValue = st;
+//   r.furtherTaxValue = ft;
+//   r.totalValue = base + st + ft;
+
+//   setRows(data);
+// };
+
+
+const update = (i, field, value) => {
   const data = [...rows];
   const r = data[i];
 
@@ -91,17 +120,18 @@ export default function InvoiceGrid() {
   const qty = Number(r.qty) || 0;
   const price = Number(r.unitPrice) || 0;
 
-  // ✅ BASE VALUE
+  // BASE VALUE
   const base = qty * price;
 
-  // ✅ FIXED TAXES
+  // FIXED SALES TAX
   const salesTaxRate = 18;
-  const furtherTaxRate = 4;
+
+  // ✅ TAKE FROM ROW (IMPORTANT FIX)
+  const furtherTaxRate = Number(r.furtherTaxRate) || 0;
 
   const st = (base * salesTaxRate) / 100;
   const ft = (base * furtherTaxRate) / 100;
 
-  // ✅ ASSIGN VALUES
   r.valueExcl = base;
   r.salesTaxValue = st;
   r.furtherTaxValue = ft;
@@ -109,7 +139,6 @@ export default function InvoiceGrid() {
 
   setRows(data);
 };
-
   // ================= ADD ROW =================
   const addRow = () => {
     setRows([
@@ -223,12 +252,43 @@ const saveInvoice = async () => {
 
   const input = document.getElementById("invoiceBox");
 
-  const canvas = await html2canvas(input, { scale: 2 });
+  // const canvas = await html2canvas(input, { scale: 2 });
+  
+  const canvas = await html2canvas(input, {
+  scale: 3, // Higher scale for better clarity
+  useCORS: true,
+  logging: false,
+  onclone: (clonedDoc) => {
+    // 1. Find the invoice box in the cloned hidden document
+    const clonedBox = clonedDoc.getElementById("invoiceBox");
+    
+    // 2. Force the cloned box to be very wide so nothing squashes
+    clonedBox.style.width = "1400px"; 
+    
+    // 3. Convert all inputs/selects to plain text
+    // This is the most effective way to stop the "cutting"
+    const inputs = clonedBox.querySelectorAll("input, select");
+    inputs.forEach((el) => {
+      const val = el.value;
+      const span = clonedDoc.createElement("span");
+      span.innerText = val;
+      
+      // Copy some basic styles so it looks right
+      span.style.display = "inline-block";
+      span.style.padding = "4px";
+      span.style.fontSize = "12px";
+      
+      // Replace the input with the text span
+      el.parentNode.replaceChild(span, el);
+    });
+  }
+});
   const img = canvas.toDataURL("image/png");
 
-  const pdf = new jsPDF("p", "mm", "a4");
+  // const pdf = new jsPDF("p", "mm", "a4");
+  const pdf = new jsPDF("l", "mm", "a4");
 
-  const width = 210;
+  const width = 297;
   const height = (canvas.height * width) / canvas.width;
 
   pdf.addImage(img, "PNG", 0, 0, width, height);
@@ -287,6 +347,7 @@ const saveInvoice = async () => {
 
       {/* INVOICE */}
       <div id="invoiceBox" style={styles.box}>
+
 
         {/* <h4>Invoice #{invoice.invoiceNo}</h4>
         <p>Date: {invoice.date}</p> */}
@@ -509,12 +570,20 @@ const saveInvoice = async () => {
 </td>
                 {/* <td><input value={r.hsCode || ""} onChange={e => update(i, "hsCode", e.target.value)} /></td> */}
                <td style={styles.td}>
-  <input
+  <td style={styles.td}>
+  <select
     value={r.hsCode || ""}
     onChange={(e) => update(i, "hsCode", e.target.value)}
-    placeholder="2022.1872"
     style={styles.smallInput}
-  />
+  >
+    <option value="">Select</option>
+    <option value="2022.1872">4707.9090</option>
+    <option value="7204.41">3915.1000</option>
+    <option value="7204.49">7204.2900</option>
+    <option value="7404.00">2401.3000</option>
+  
+  </select>
+</td>
 </td>
                 {/* <td><input value={r.qty || ""} onChange={e => update(i, "qty", e.target.value)} /></td> */}
  <td style={styles.td}>
@@ -589,6 +658,7 @@ const saveInvoice = async () => {
     style={styles.smallInput1}
   >
     <option value="4">4</option>
+     <option value="0">0</option>
   </select>
 </td>
                 <td>{formatNumber(r.valueExcl)}</td>

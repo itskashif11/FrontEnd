@@ -1,366 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-// import html2canvas from "html2canvas";
-// import jsPDF from "jspdf";
-
-// export default function InvoiceGrid() {
-
-//   // ================= STATE =================
-//   const [invoice, setInvoice] = useState({ invoiceNo: "", date: "" });
-
-//   const [seller, setSeller] = useState({
-//     name: "",
-//     address: "",
-//     ntn: "",
-//     strn: ""
-//   });
-
-//   const [buyer, setBuyer] = useState({
-//     name: "",
-//     address: "",
-//     ntn: "",
-//     strn: ""
-//   });
-
-//   const emptyRow = {
-//     sr: 1,
-//     description: "",
-//     hsCode: "",
-//     qty: 0,
-//     uom: "",
-//     unitPrice: 0,
-//     salesTaxRate: 0,
-//     furtherTaxRate: 0,
-//     valueExcl: 0,
-//     salesTaxValue: 0,
-//     furtherTaxValue: 0,
-//     totalValue: 0
-//   };
-
-//   const [rows, setRows] = useState([emptyRow]);
-
-//   // ================= LOAD INVOICE NO =================
-//   useEffect(() => {
-//     axios.get("http://localhost:5000/next-invoice")
-//       .then(res => {
-//         setInvoice({
-//           invoiceNo: res.data.nextNo,
-//           date: new Date().toISOString().split("T")[0]
-//         });
-//       });
-//   }, []);
-
-//   // ================= CALCULATION =================
-//   const update = (i, field, value) => {
-//     const data = [...rows];
-//     const r = data[i];
-
-//     r[field] = value;
-
-//     const base = (Number(r.qty) || 0) * (Number(r.unitPrice) || 0);
-//     const st = (base * (Number(r.salesTaxRate) || 0)) / 100;
-//     const ft = (base * (Number(r.furtherTaxRate) || 0)) / 100;
-
-//     r.valueExcl = base;
-//     r.salesTaxValue = st;
-//     r.furtherTaxValue = ft;
-//     r.totalValue = base + st + ft;
-
-//     setRows(data);
-//   };
-
-//   // ================= ADD ROW =================
-//   const addRow = () => {
-//     setRows([
-//       ...rows,
-//       {
-//         ...emptyRow,
-//         sr: rows.length + 1
-//       }
-//     ]);
-//   };
-
-//   // ================= SEARCH =================
-//   const searchInvoice = async (no) => {
-//     const res = await axios.get(`http://localhost:5000/invoice/${no}`);
-//     if (!res.data) return alert("Invoice not found");
-
-//     setInvoice({
-//       invoiceNo: res.data.invoiceNo,
-//       date: res.data.date
-//     });
-
-//     setSeller(res.data.seller || {});
-//     setBuyer(res.data.buyer || {});
-//     setRows(res.data.rows || [emptyRow]);
-//   };
-
-//   // ================= RESET FORM =================
-//   const resetForm = async () => {
-
-//   const res = await axios.get("http://localhost:5000/next-invoice");
-
-//   // ✅ reset invoice
-//   setInvoice({
-//     invoiceNo: res.data.nextNo,
-//     date: new Date().toISOString().split("T")[0]
-//   });
-
-//   // ✅ reset seller
-//   setSeller({
-//     name: "",
-//     address: "",
-//     ntn: "",
-//     strn: ""
-//   });
-
-//   // ✅ reset buyer
-//   setBuyer({
-//     name: "",
-//     address: "",
-//     ntn: "",
-//     strn: ""
-//   });
-
-//   // 🔥 HARD RESET TABLE ROWS (IMPORTANT FIX)
-//   setRows([
-//     {
-//       sr: 1,
-//       description: "",
-//       hsCode: "",
-//       qty: "",
-//       uom: "",
-//       unitPrice: "",
-//       salesTaxRate: "",
-//       furtherTaxRate: "",
-//       valueExcl: 0,
-//       salesTaxValue: 0,
-//       furtherTaxValue: 0,
-//       totalValue: 0
-//     }
-//   ]);
-// };
-
-//   // ================= SAVE INVOICE =================
-//   const saveInvoice = async () => {
-
-//     const invoiceNo = invoice.invoiceNo;
-
-//     if (!invoiceNo) {
-//       alert("Invoice number missing!");
-//       return;
-//     }
-
-//     const input = document.getElementById("invoiceBox");
-
-//     const canvas = await html2canvas(input, { scale: 2 });
-//     const img = canvas.toDataURL("image/png");
-
-//     const pdf = new jsPDF("p", "mm", "a4");
-
-//     const width = 210;
-//     const height = (canvas.height * width) / canvas.width;
-
-//     pdf.addImage(img, "PNG", 0, 0, width, height);
-
-//     const blob = pdf.output("blob");
-
-//     const formData = new FormData();
-
-//     formData.append("file", blob, `Invoice_${invoiceNo}.pdf`);
-
-//     formData.append("data", JSON.stringify({
-//       invoiceNo,
-//       date: invoice.date,
-//       seller,
-//       buyer,
-//       rows
-//     }));
-
-//     await axios.post("http://localhost:5000/save-invoice", formData);
-
-//     // 🔥 RESET AFTER SAVE (IMPORTANT)
-//     await resetForm();
-
-    
-
-//     alert("Saved Successfully + New Invoice Ready");
-//   };
-
-//   // ================= TOTALS =================
-//   const totalExcl = rows.reduce((s, r) => s + Number(r.valueExcl || 0), 0);
-//   const totalST = rows.reduce((s, r) => s + Number(r.salesTaxValue || 0), 0);
-//   const totalFT = rows.reduce((s, r) => s + Number(r.furtherTaxValue || 0), 0);
-//   const grandTotal = rows.reduce((s, r) => s + Number(r.totalValue || 0), 0);
-
-//   // ================= UI =================
-//   return (
-//     <div style={styles.page}>
-
-//       {/* HEADER */}
-//       <div style={styles.header}>
-//         <h3>ERP INVOICE SYSTEM</h3>
-
-//         <div style={styles.actions}>
-//           <input
-//             placeholder="Search Invoice"
-//             onKeyDown={(e) => {
-//               if (e.key === "Enter") searchInvoice(e.target.value);
-//             }}
-//           />
-
-//           <button onClick={addRow}>+ Row</button>
-//           <button onClick={saveInvoice} style={{ background: "green", color: "white" }}>
-//             SAVE
-//           </button>
-//         </div>
-//       </div>
-
-//       {/* INVOICE */}
-//       <div id="invoiceBox" style={styles.box}>
-
-//         <h4>Invoice #{invoice.invoiceNo}</h4>
-//         <p>Date: {invoice.date}</p>
-
-//         {/* SELLER + BUYER */}
-//         <div style={styles.grid}>
-
-//           <div style={styles.card}>
-//             <h4>Seller</h4>
-//             <input placeholder="Name" value={seller.name} onChange={e => setSeller({ ...seller, name: e.target.value })} />
-//             <input placeholder="Address" value={seller.address} onChange={e => setSeller({ ...seller, address: e.target.value })} />
-//             <input placeholder="NTN" value={seller.ntn} onChange={e => setSeller({ ...seller, ntn: e.target.value })} />
-//             <input placeholder="STRN" value={seller.strn} onChange={e => setSeller({ ...seller, strn: e.target.value })} />
-//           </div>
-
-//           <div style={styles.card}>
-//             <h4>Buyer</h4>
-//             <input placeholder="Name" value={buyer.name} onChange={e => setBuyer({ ...buyer, name: e.target.value })} />
-//             <input placeholder="Address" value={buyer.address} onChange={e => setBuyer({ ...buyer, address: e.target.value })} />
-//             <input placeholder="NTN" value={buyer.ntn} onChange={e => setBuyer({ ...buyer, ntn: e.target.value })} />
-//             <input placeholder="STRN" value={buyer.strn} onChange={e => setBuyer({ ...buyer, strn: e.target.value })} />
-//           </div>
-
-//         </div>
-
-//         {/* TABLE */}
-//         <table style={styles.table}>
-//           <thead>
-//             <tr>
-//               <th>Sr</th>
-//               <th>Description</th>
-//               <th>HS</th>
-//               <th>Qty</th>
-//               <th>UoM</th>
-//               <th>Price</th>
-//               <th>ST%</th>
-//               <th>FT%</th>
-//               <th>Excl</th>
-//               <th>ST</th>
-//               <th>FT</th>
-//               <th>Total</th>
-//             </tr>
-//           </thead>
-
-//           <tbody>
-//             {rows.map((r, i) => (
-//               <tr key={i}>
-//                 <td>{r.sr}</td>
-
-//                 <td><input onChange={e => update(i, "description", e.target.value)} /></td>
-//                 <td><input onChange={e => update(i, "hsCode", e.target.value)} /></td>
-//                 <td><input onChange={e => update(i, "qty", e.target.value)} /></td>
-//                 <td><input onChange={e => update(i, "uom", e.target.value)} /></td>
-//                 <td><input onChange={e => update(i, "unitPrice", e.target.value)} /></td>
-//                 <td><input onChange={e => update(i, "salesTaxRate", e.target.value)} /></td>
-//                 <td><input onChange={e => update(i, "furtherTaxRate", e.target.value)} /></td>
-
-//                 <td>{r.valueExcl}</td>
-//                 <td>{r.salesTaxValue}</td>
-//                 <td>{r.furtherTaxValue}</td>
-//                 <td><b>{r.totalValue}</b></td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </table>
-
-//         {/* TOTALS */}
-//         <div style={styles.summary}>
-//           <div><b>Value Excl:</b> {totalExcl.toFixed(2)}</div>
-//           <div><b>Sales Tax:</b> {totalST.toFixed(2)}</div>
-//           <div><b>Further Tax:</b> {totalFT.toFixed(2)}</div>
-//           <div><b>Total:</b> {grandTotal.toFixed(2)}</div>
-//         </div>
-
-//       </div>
-//     </div>
-//   );
-// }
-
-// /* ================= STYLES ================= */
-// const styles = {
-
-//   page: { padding: 20, fontFamily: "Segoe UI", background: "#f4f6f9" },
-
-//   header: {
-//     display: "flex",
-//     justifyContent: "space-between",
-//     background: "#111",
-//     color: "white",
-//     padding: 10,
-//     alignItems: "center"
-//   },
-
-//   actions: {
-//     display: "flex",
-//     gap: 10,
-//     alignItems: "center"
-//   },
-
-//   box: {
-//     background: "white",
-//     padding: 20,
-//     marginTop: 10,
-//     borderRadius: 10
-//   },
-
-//   grid: {
-//     display: "grid",
-//     gridTemplateColumns: "1fr 1fr",
-//     gap: 10
-//   },
-
-//   card: {
-//     border: "1px solid #ddd",
-//     padding: 10,
-//     display: "flex",
-//     flexDirection: "column",
-//     gap: 5
-//   },
-
-//   table: {
-//     width: "100%",
-//     marginTop: 10,
-//     borderCollapse: "collapse",
-//     fontSize: 12
-//   },
-
-//   summary: {
-//     marginTop: 20,
-//     paddingTop: 10,
-//     borderTop: "2px solid #ddd",
-//     display: "flex",
-//     justifyContent: "space-between"
-//   }
-// };
-
-
-
-
-
-
-
-
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -420,23 +57,51 @@ export default function InvoiceGrid() {
   }, []);
 
   // ================= UPDATE ROW =================
-  const update = (i, field, value) => {
-    const data = [...rows];
-    const r = data[i];
+  // const update = (i, field, value) => {
+  //   const data = [...rows];
+  //   const r = data[i];
 
-    r[field] = value;
+  //   r[field] = value;
 
-    const base = (Number(r.qty) || 0) * (Number(r.unitPrice) || 0);
-    const st = (base * (Number(r.salesTaxRate) || 0)) / 100;
-    const ft = (base * (Number(r.furtherTaxRate) || 0)) / 100;
+  //   const base = (Number(r.qty) || 0) * (Number(r.unitPrice) || 0);
+  //   const st = (base * (Number(r.salesTaxRate) || 0)) / 100;
+  //   const ft = (base * (Number(r.furtherTaxRate) || 0)) / 100;
 
-    r.valueExcl = base;
-    r.salesTaxValue = st;
-    r.furtherTaxValue = ft;
-    r.totalValue = base + st + ft;
+  //   r.valueExcl = base;
+  //   r.salesTaxValue = st;
+  //   r.furtherTaxValue = ft;
+  //   r.totalValue = base + st + ft;
 
-    setRows(data);
-  };
+  //   setRows(data);
+  // };
+
+ const update = (i, field, value) => {
+  const data = [...rows];
+  const r = data[i];
+
+  r[field] = value;
+
+  const qty = Number(r.qty) || 0;
+  const price = Number(r.unitPrice) || 0;
+
+  // ✅ BASE VALUE
+  const base = qty * price;
+
+  // ✅ FIXED TAXES
+  const salesTaxRate = 18;
+  const furtherTaxRate = 4;
+
+  const st = (base * salesTaxRate) / 100;
+  const ft = (base * furtherTaxRate) / 100;
+
+  // ✅ ASSIGN VALUES
+  r.valueExcl = base;
+  r.salesTaxValue = st;
+  r.furtherTaxValue = ft;
+  r.totalValue = base + st + ft;
+
+  setRows(data);
+};
 
   // ================= ADD ROW =================
   const addRow = () => {
@@ -905,17 +570,10 @@ const saveInvoice = async () => {
           </tbody>
         </table>
 
-        {/* TOTALS */}
-        {/* <div style={styles.summary}>
-          <div><b>Value of Sales Excluding Sales Tax:</b> {totalExcl.toFixed(2)}</div>
-          <div><b>Sales Tax Value:</b> {totalST.toFixed(2)}</div>
-          <div><b>Value of Further Sales Tax:</b> {totalFT.toFixed(2)}</div>
-          <div><b>Total Value of Sales including sales tax:</b> {grandTotal.toFixed(2)}</div>
-        </div> */}
+       
 
         <div style={styles.actionsBottom}>
-  {/* <button style={styles.addBtn} onClick={addRow}>+ Add Row</button>
-  <button style={styles.saveBtn} onClick={saveInvoice}>💾 Save Invoice</button> */}
+ 
 </div>
 
 <div style={styles.signatureSection}>

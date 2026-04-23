@@ -9,11 +9,13 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
 
- const BASE_URL = "https://backend-v8ij.vercel.app";
+
+
+const BASE_URL = "https://backend-v8ij.vercel.app";
 
 const handleLogin = async () => {
   try {
-    const res = await axios.post(`https://backend-v8ij.vercel.app/register/login`, {
+    const res = await axios.post(`${BASE_URL}/login`, {
       username: email,
       password: password,
     });
@@ -36,7 +38,6 @@ const handleSignup = async () => {
     alert(res.data.message);
 
   } catch (err) {
-    console.log(err.response?.data || err.message);
     alert(err.response?.data?.message || "Signup failed");
   }
 };
@@ -73,7 +74,7 @@ const handleSignup = async () => {
           />
 
           <button
-            onClick={isSignup ? handleSignup : handleLogin}
+            onClick={isSignup ? handleRegister : handleLogin}
             className="w-full bg-blue-600 p-3 rounded text-white"
           >
             {isSignup ? "Sign Up" : "Login"}

@@ -75,6 +75,13 @@ export default function InvoiceGrid() {
   //   setRows(data);
   // };
 
+  const formatNumber = (num) => {
+  return new Intl.NumberFormat("en-PK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(num) || 0);
+};
+
  const update = (i, field, value) => {
   const data = [...rows];
   const r = data[i];
@@ -512,12 +519,23 @@ const saveInvoice = async () => {
                 {/* <td><input value={r.qty || ""} onChange={e => update(i, "qty", e.target.value)} /></td> */}
  <td style={styles.td}>
   <input
-    type="number"
-    value={r.qty || ""}
-    onChange={(e) => update(i, "qty", e.target.value)}
-    maxLength={7}
-    style={styles.smallInput}
-  />
+  type="text"
+  value={
+    r.qty !== "" && r.qty !== undefined
+      ? new Intl.NumberFormat("en-PK").format(r.qty)
+      : ""
+  }
+  onChange={(e) => {
+    // remove commas before saving
+    const raw = e.target.value.replace(/,/g, "");
+
+    // allow only numbers
+    if (!/^\d*$/.test(raw)) return;
+
+    update(i, "qty", raw);
+  }}
+  style={styles.smallInput}
+/>
 </td>
 
                 {/* <td><input value={r.uom || ""} onChange={e => update(i, "uom", e.target.value)} /></td> */}
@@ -536,11 +554,23 @@ const saveInvoice = async () => {
                 {/* <td><input value={r.unitPrice || ""} onChange={e => update(i, "unitPrice", e.target.value)} /></td> */}
                <td style={styles.td}>
   <input
-    type="number"
-    value={r.unitPrice || ""}
-    onChange={(e) => update(i, "unitPrice", e.target.value)}
-    style={styles.smallInput}
-  />
+  type="text"
+  value={
+    r.unitPrice !== "" && r.unitPrice !== undefined
+      ? new Intl.NumberFormat("en-PK").format(r.unitPrice)
+      : ""
+  }
+  onChange={(e) => {
+    // remove commas
+    const raw = e.target.value.replace(/,/g, "");
+
+    // allow only numbers (and decimal if needed)
+    if (!/^\d*\.?\d*$/.test(raw)) return;
+
+    update(i, "unitPrice", raw);
+  }}
+  style={styles.smallInput}
+/>
 </td>
                 {/* <td><input value={r.salesTaxRate || ""} onChange={e => update(i, "salesTaxRate", e.target.value)} /></td> */}
 
@@ -561,10 +591,10 @@ const saveInvoice = async () => {
     <option value="4">4</option>
   </select>
 </td>
-                <td>{r.valueExcl}</td>
-                <td>{r.salesTaxValue}</td>
-                <td>{r.furtherTaxValue}</td>
-                <td><b>{r.totalValue}</b></td>
+                <td>{formatNumber(r.valueExcl)}</td>
+<td>{formatNumber(r.salesTaxValue)}</td>
+<td>{formatNumber(r.furtherTaxValue)}</td>
+<td><b>{formatNumber(r.totalValue)}</b></td>
               </tr>
             ))}
           </tbody>

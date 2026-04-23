@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import logo from "../assets/Logo1.png";
@@ -42,7 +43,7 @@ export default function InvoiceGrid() {
   };
 
   const [rows, setRows] = useState([emptyRow]);
-
+ const navigate = useNavigate();
   // ================= LOAD NEXT INVOICE =================
   useEffect(() => {
     // axios.get("http://localhost:5000/next-invoice")
@@ -318,7 +319,10 @@ const res = await axios.get("https://backend-v8ij.vercel.app/next-invoice");
 //     alert("Save failed");
 //   }
 // };
-
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  navigate("/");
+};
 
 const saveInvoice = async () => {
   const invoiceNo = invoice.invoiceNo;
@@ -923,7 +927,7 @@ addBtn: {
 
 logout: {
   padding: "5px 10px",
-  background: "#3b82f6",
+  background: "linear-gradient(135deg, #1e293b, #0f172a)",
   color: "white",
   border: "none",
   borderRadius: "6px",

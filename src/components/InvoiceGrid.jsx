@@ -242,6 +242,84 @@ const res = await axios.get("https://backend-v8ij.vercel.app/next-invoice");
   // };
 
 
+// const saveInvoice = async () => {
+//   const invoiceNo = invoice.invoiceNo;
+
+//   if (!invoiceNo) {
+//     alert("Invoice number missing!");
+//     return;
+//   }
+
+//   const input = document.getElementById("invoiceBox");
+
+//   // const canvas = await html2canvas(input, { scale: 2 });
+  
+//   const canvas = await html2canvas(input, {
+//   scale: 3, // Higher scale for better clarity
+//   useCORS: true,
+//   logging: false,
+//   onclone: (clonedDoc) => {
+//     // 1. Find the invoice box in the cloned hidden document
+//     const clonedBox = clonedDoc.getElementById("invoiceBox");
+    
+//     // 2. Force the cloned box to be very wide so nothing squashes
+//     clonedBox.style.width = "1400px"; 
+    
+//     // 3. Convert all inputs/selects to plain text
+//     // This is the most effective way to stop the "cutting"
+//     const inputs = clonedBox.querySelectorAll("input, select");
+//     inputs.forEach((el) => {
+//       const val = el.value;
+//       const span = clonedDoc.createElement("span");
+//       span.innerText = val;
+      
+//       // Copy some basic styles so it looks right
+//       span.style.display = "inline-block";
+//       span.style.padding = "4px";
+//       span.style.fontSize = "12px";
+      
+//       // Replace the input with the text span
+//       el.parentNode.replaceChild(span, el);
+//     });
+//   }
+// });
+//   const img = canvas.toDataURL("image/png");
+
+//   // const pdf = new jsPDF("p", "mm", "a4");
+//   const pdf = new jsPDF("l", "mm", "a4");
+
+//   const width = 297;
+//   const height = (canvas.height * width) / canvas.width;
+
+//   pdf.addImage(img, "PNG", 0, 0, width, height);
+
+//   // 💡 SAVE FILE LOCALLY (NO BACKEND FILE SENDING)
+//   pdf.save(`Invoice_${invoiceNo}.pdf`);
+
+//   const payload = {
+//     invoiceNo,
+//     date: invoice.date,
+//     seller,
+//     buyer,
+//     rows
+//   };
+
+//   try {
+//     await axios.post(
+//       "https://backend-v8ij.vercel.app/save-invoice",
+//       payload
+//     );
+
+//     await resetForm();
+//     alert("Saved Successfully 🚀");
+
+//   } catch (err) {
+//     console.log(err);
+//     alert("Save failed");
+//   }
+// };
+
+
 const saveInvoice = async () => {
   const invoiceNo = invoice.invoiceNo;
 
@@ -250,61 +328,88 @@ const saveInvoice = async () => {
     return;
   }
 
-  const input = document.getElementById("invoiceBox");
-
-  // const canvas = await html2canvas(input, { scale: 2 });
-  
-  const canvas = await html2canvas(input, {
-  scale: 3, // Higher scale for better clarity
-  useCORS: true,
-  logging: false,
-  onclone: (clonedDoc) => {
-    // 1. Find the invoice box in the cloned hidden document
-    const clonedBox = clonedDoc.getElementById("invoiceBox");
-    
-    // 2. Force the cloned box to be very wide so nothing squashes
-    clonedBox.style.width = "1400px"; 
-    
-    // 3. Convert all inputs/selects to plain text
-    // This is the most effective way to stop the "cutting"
-    const inputs = clonedBox.querySelectorAll("input, select");
-    inputs.forEach((el) => {
-      const val = el.value;
-      const span = clonedDoc.createElement("span");
-      span.innerText = val;
-      
-      // Copy some basic styles so it looks right
-      span.style.display = "inline-block";
-      span.style.padding = "4px";
-      span.style.fontSize = "12px";
-      
-      // Replace the input with the text span
-      el.parentNode.replaceChild(span, el);
-    });
-  }
-});
-  const img = canvas.toDataURL("image/png");
-
-  // const pdf = new jsPDF("p", "mm", "a4");
-  const pdf = new jsPDF("l", "mm", "a4");
-
-  const width = 297;
-  const height = (canvas.height * width) / canvas.width;
-
-  pdf.addImage(img, "PNG", 0, 0, width, height);
-
-  // 💡 SAVE FILE LOCALLY (NO BACKEND FILE SENDING)
-  pdf.save(`Invoice_${invoiceNo}.pdf`);
-
-  const payload = {
-    invoiceNo,
-    date: invoice.date,
-    seller,
-    buyer,
-    rows
-  };
-
   try {
+    const input = document.getElementById("invoiceBox");
+
+    const canvas = await html2canvas(input, {
+      scale: 3,
+      useCORS: true,
+      logging: false,
+
+      onclone: (clonedDoc) => {
+        const clonedBox = clonedDoc.getElementById("invoiceBox");
+
+        // Force stable width
+        clonedBox.style.width = "1400px";
+
+        // Convert inputs/selects → text
+        const inputs = clonedBox.querySelectorAll("input, select");
+
+        inputs.forEach((el) => {
+          const span = clonedDoc.createElement("span");
+          span.innerText = el.value;
+
+          span.style.display = "inline-block";
+          span.style.padding = "4px";
+          span.style.fontSize = "12px";
+          span.style.whiteSpace = "pre-wrap";
+          span.style.wordBreak = "break-word";
+
+          el.parentNode.replaceChild(span, el);
+        });
+
+        // Convert textarea → multiline safe text
+        const textareas = clonedBox.querySelectorAll("textarea");
+
+        textareas.forEach((ta) => {
+          const span = clonedDoc.createElement("span");
+
+          span.innerText = ta.value;
+          span.style.whiteSpace = "pre-wrap";
+          span.style.wordBreak = "break-word";
+          span.style.display = "inline-block";
+          span.style.maxWidth = "220px";
+          span.style.fontSize = "12px";
+
+          ta.parentNode.replaceChild(span, ta);
+        });
+      },
+    });
+
+    const img = canvas.toDataURL("image/png");
+
+    // ================= PDF =================
+    const pdf = new jsPDF("l", "mm", "a4");
+
+    const pdfWidth = 297;
+    const pdfHeight = 210;
+
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(img, "PNG", 0, position, pdfWidth, imgHeight);
+    heightLeft -= pdfHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(img, "PNG", 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+
+    pdf.save(`Invoice_${invoiceNo}.pdf`);
+
+    // ================= BACKEND =================
+    const payload = {
+      invoiceNo,
+      date: invoice.date,
+      seller,
+      buyer,
+      rows,
+    };
+
     await axios.post(
       "https://backend-v8ij.vercel.app/save-invoice",
       payload
@@ -312,28 +417,30 @@ const saveInvoice = async () => {
 
     await resetForm();
     alert("Saved Successfully 🚀");
-
   } catch (err) {
     console.log(err);
     alert("Save failed");
   }
 };
 
-
   // ================= TOTALS =================
   const totalExcl = rows.reduce((s, r) => s + Number(r.valueExcl || 0), 0);
   const totalST = rows.reduce((s, r) => s + Number(r.salesTaxValue || 0), 0);
   const totalFT = rows.reduce((s, r) => s + Number(r.furtherTaxValue || 0), 0);
   const grandTotal = rows.reduce((s, r) => s + Number(r.totalValue || 0), 0);
-
+const autoResize = (e) => {
+  e.target.style.height = "40px"; // reset
+  e.target.style.height = Math.min(e.target.scrollHeight, 90) + "px";
+};
   // ================= UI =================
   return (
     <div style={styles.page}>
 
       {/* HEADER */}
-  <div style={styles.header}>
+  {/* <div style={styles.header}>
 
   <h2 style={styles.title}>SCRAP SALES INVOICE SYSTEM</h2>
+
 
   <input
     style={styles.search}
@@ -343,7 +450,34 @@ const saveInvoice = async () => {
     }}
   />
 
+   
+
+</div> */}
+
+<div style={styles.header}>
+
+  <div style={styles.left} />
+
+  <h1 style={styles.title}>SCRAP SALES INVOICE SYSTEM</h1>
+
+  <div style={styles.rightSection}>
+    <input
+      style={styles.search}
+      placeholder="Search Invoice..."
+      onKeyDown={(e) => {
+        if (e.key === "Enter") searchInvoice(e.target.value);
+      }}
+    />
+
+    <button style={styles.logout} onClick={handleLogout}>
+      Logout
+    </button>
+  </div>
+
 </div>
+
+
+
 
       {/* INVOICE */}
       <div id="invoiceBox" style={styles.box}>
@@ -562,11 +696,15 @@ const saveInvoice = async () => {
 
                 {/* <td><input value={r.description || ""} onChange={e => update(i, "description", e.target.value)} /></td> */}
                <td style={styles.td}>
-  <input
-    value={r.description || ""}
-    onChange={(e) => update(i, "description", e.target.value)}
-    style={styles.descInput}
-  />
+  <textarea
+  value={r.description || ""}
+  onChange={(e) => {
+    update(i, "description", e.target.value);
+    autoResize(e);
+  }}
+  style={styles.descInput}
+  rows={2}
+/>
 </td>
                 {/* <td><input value={r.hsCode || ""} onChange={e => update(i, "hsCode", e.target.value)} /></td> */}
                <td style={styles.td}>
@@ -722,32 +860,45 @@ const saveInvoice = async () => {
 const styles = {
   page: { padding: 20, fontFamily: "Segoe UI", background: "#f4f6f9" },
 header: {
-  position: "relative",
+  display: "grid",
+  gridTemplateColumns: "1fr auto 1fr",
+  alignItems: "center",
   background: "linear-gradient(135deg, #1e293b, #0f172a)",
   color: "white",
   padding: "20px",
   borderRadius: "10px",
-  textAlign: "center",
-  marginBottom: "15px"
+  marginBottom: "15px",
+},
+
+left: {
+  // empty space to balance layout
 },
 
 title: {
+  textAlign: "center",
   margin: 0,
-  fontSize: "24px"
+  whiteSpace: "nowrap",
+  fontSize: 24
+},
+
+rightSection: {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  justifySelf: "end",
 },
 
 search: {
-  position: "absolute",
-  right: "20px",
-  top: "20px",
-  width: "180px",
   padding: "6px 10px",
   borderRadius: "6px",
   border: "none",
   outline: "none",
-  fontSize: "13px",
   color: "black"
 },
+
+
+
+
   actions: { display: "flex", gap: 10 },
   box: { background: "white", padding: 20, marginTop: 10, borderRadius: 10 },
   grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
@@ -770,6 +921,14 @@ addBtn: {
   cursor: "pointer"
 },
 
+logout: {
+  padding: "5px 10px",
+  background: "#3b82f6",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer"
+},
 saveBtn: {
   padding: "10px 20px",
   background: "#16a34a",
@@ -972,13 +1131,21 @@ invoiceInfo: {
     cursor: "pointer",
     marginTop: "10px"
   },
-   descInput: {
-    width: "220px",
-    height: "40px",
-    padding: "6px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-  },
+  descInput: {
+  width: "220px",
+
+  minHeight: "40px",
+  maxHeight: "90px",   // 👈 limits expansion (about 3–4 rows)
+
+  padding: "6px",
+  borderRadius: "6px",
+  border: "1px solid #ccc",
+
+  resize: "none",      // 👈 no manual resize
+  overflow: "hidden",  // 👈 prevents ugly scroll
+  whiteSpace: "pre-wrap",
+  wordBreak: "break-word",
+},
    smallInput: {
     width: "105px",
     padding: "4px",

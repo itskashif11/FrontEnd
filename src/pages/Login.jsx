@@ -74,7 +74,7 @@ const handleSignup = async () => {
           />
 
           <button
-            onClick={isSignup ? handleRegister : handleLogin}
+            onClick={isSignup ? handleSignup : handleLogin}
             className="w-full bg-blue-600 p-3 rounded text-white"
           >
             {isSignup ? "Sign Up" : "Login"}
